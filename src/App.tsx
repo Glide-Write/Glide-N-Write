@@ -86,6 +86,8 @@ export default function App() {
         dir = dy > 0 ? 'DOWN' : 'UP';
       }
       setCurrentSequence(prev => [...prev, dir]);
+    } else if (absDx < 10 && absDy < 10) {
+      handleStop();
     }
     
     if (trailRef.current) {
@@ -102,10 +104,21 @@ export default function App() {
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
+  const appendWord = (word: string) => {
+    setConfirmedText(prev => {
+      if (word.startsWith('-') && prev.length > 0) {
+        const lastWord = prev[prev.length - 1];
+        const suffix = word.slice(1);
+        return [...prev.slice(0, -1), lastWord + suffix];
+      }
+      return [...prev, word];
+    });
+  };
+
   const handleStop = () => {
     if (mode === 'talk') {
       if (previewWord) {
-        setConfirmedText(prev => [...prev, previewWord]);
+        appendWord(previewWord);
       }
       setCurrentSequence([]);
     } else {
@@ -125,7 +138,7 @@ export default function App() {
         }));
         setCurrentSequence([]);
       } else if (isManualInput) {
-        setConfirmedText(prev => [...prev, finalWord]);
+        appendWord(finalWord);
       }
     }
     setNewWord('');
