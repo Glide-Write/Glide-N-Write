@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { Menu, Delete, RotateCcw, Keyboard, Volume2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Trash2, Plus } from 'lucide-react';
+import { Menu, Delete, RotateCcw, Keyboard, Volume2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Trash2, Plus, Globe } from 'lucide-react';
+import { useTranslation } from './i18n';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -7,6 +8,7 @@ interface WordConfig {
   id: string;
   title: string;
   description: string;
+  language: string;
   dictionary: Record<string, string>;
 }
 
@@ -62,7 +64,7 @@ const PunctuationButton: React.FC<PunctuationButtonProps> = ({ symbol, onAdd }) 
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerLeave}
       className={`
-        flex-1 min-w-[24px] sm:min-w-[28px] h-8 sm:h-10 flex items-center justify-center rounded-[6px] border transition-all duration-150 select-none touch-none font-medium text-text text-[14px] sm:text-[16px]
+        flex-1 min-w-[24px] sm:min-w-[28px] h-8 sm:h-10 flex items-center justify-center rounded-[6px] border transition-all duration-150 select-none touch-none font-medium text-text
         ${isActive 
           ? isLongPressing 
             ? 'bg-border border-[#D5D5D5] scale-[0.92]' 
@@ -71,33 +73,90 @@ const PunctuationButton: React.FC<PunctuationButtonProps> = ({ symbol, onAdd }) 
         }
       `}
     >
-      {symbol}
+      <span className={`w-full truncate px-0.5 text-center ${symbol.length > 2 ? 'text-[10px] sm:text-[11px]' : symbol.length > 1 ? 'text-[12px] sm:text-[14px]' : 'text-[14px] sm:text-[16px]'}`}>{symbol}</span>
     </button>
   );
 };
 
+const DEFAULT_QUICK_SYMBOLS = ['.', ',', '!', '?', "'", ':', ';', '+', '-', '=', '(', ')', '%'];
+
+const DEFAULT_CONFIGS: WordConfig[] = [
+  {
+    id: 'default-1',
+    title: 'English (Default)',
+    description: 'Comprehensive daily conversational words',
+    language: 'en-US',
+    dictionary: {
+      'UP': 'Yes', 'DOWN': 'No', 'LEFT': 'Hello', 'RIGHT': 'Thanks',
+      'UP,UP': 'I', 'UP,DOWN': 'You', 'UP,LEFT': 'He', 'UP,RIGHT': 'She',
+      'DOWN,UP': 'It', 'DOWN,DOWN': 'We', 'DOWN,LEFT': 'They', 'DOWN,RIGHT': 'What',
+      'LEFT,UP': 'Where', 'LEFT,DOWN': 'When', 'LEFT,LEFT': 'Who', 'LEFT,RIGHT': 'Why',
+      'RIGHT,UP': 'How', 'RIGHT,DOWN': 'Please', 'RIGHT,LEFT': 'Sorry', 'RIGHT,RIGHT': 'Help',
+      'UP,UP,UP': 'want', 'UP,UP,DOWN': 'need', 'UP,UP,LEFT': 'like', 'UP,UP,RIGHT': 'love',
+      'UP,DOWN,UP': 'go', 'UP,DOWN,DOWN': 'stop', 'UP,DOWN,LEFT': 'come', 'UP,DOWN,RIGHT': 'leave',
+      'UP,LEFT,UP': 'good', 'UP,LEFT,DOWN': 'bad', 'UP,LEFT,LEFT': 'happy', 'UP,LEFT,RIGHT': 'sad',
+      'UP,RIGHT,UP': 'big', 'UP,RIGHT,DOWN': 'small', 'UP,RIGHT,LEFT': 'hot', 'UP,RIGHT,RIGHT': 'cold',
+      'DOWN,UP,UP': 'more', 'DOWN,UP,DOWN': 'less', 'DOWN,UP,LEFT': 'up', 'DOWN,UP,RIGHT': 'down',
+      'DOWN,DOWN,UP': 'in', 'DOWN,DOWN,DOWN': 'out', 'DOWN,DOWN,LEFT': 'on', 'DOWN,DOWN,RIGHT': 'off',
+      'DOWN,LEFT,UP': 'here', 'DOWN,LEFT,DOWN': 'there', 'DOWN,LEFT,LEFT': 'now', 'DOWN,LEFT,RIGHT': 'later',
+      'DOWN,RIGHT,UP': 'today', 'DOWN,RIGHT,DOWN': 'tomorrow', 'DOWN,RIGHT,LEFT': 'yesterday', 'DOWN,RIGHT,RIGHT': 'time',
+      'LEFT,UP,UP': 'food', 'LEFT,UP,DOWN': 'water', 'LEFT,UP,LEFT': 'eat', 'LEFT,UP,RIGHT': 'drink',
+      'LEFT,DOWN,UP': 'toilet', 'LEFT,DOWN,DOWN': 'sleep', 'LEFT,DOWN,LEFT': 'tired', 'LEFT,DOWN,RIGHT': 'hurt',
+      'LEFT,LEFT,UP': 'play', 'LEFT,LEFT,DOWN': 'work', 'LEFT,LEFT,LEFT': 'home', 'LEFT,LEFT,RIGHT': 'school',
+      'LEFT,RIGHT,UP': 'mother', 'LEFT,RIGHT,DOWN': 'father', 'LEFT,RIGHT,LEFT': 'sister', 'LEFT,RIGHT,RIGHT': 'brother',
+      'RIGHT,UP,UP': 'friend', 'RIGHT,UP,DOWN': 'family', 'RIGHT,UP,LEFT': 'doctor', 'RIGHT,UP,RIGHT': 'nurse',
+      'RIGHT,DOWN,UP': 'yes please', 'RIGHT,DOWN,DOWN': 'no thanks', 'RIGHT,DOWN,LEFT': 'maybe', 'RIGHT,DOWN,RIGHT': "I don't know",
+      'RIGHT,LEFT,UP': 'excuse me', 'RIGHT,LEFT,DOWN': 'look', 'RIGHT,LEFT,LEFT': 'listen', 'RIGHT,LEFT,RIGHT': 'wait',
+      'RIGHT,RIGHT,UP': 'fast', 'RIGHT,RIGHT,DOWN': 'slow', 'RIGHT,RIGHT,LEFT': 'quiet', 'RIGHT,RIGHT,RIGHT': 'loud'
+    }
+  },
+  {
+    id: 'default-2',
+    title: 'Türkçe',
+    description: 'Temel günlük kelimeler',
+    language: 'tr-TR',
+    dictionary: {
+      'UP': 'Merhaba',
+      'DOWN': 'Nasılsın',
+      'RIGHT': 'Evet',
+      'LEFT': 'Hayır',
+      'UP,UP': 'Teşekkürler'
+    }
+  }
+];
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<'main' | 'configs' | 'settings'>('main');
-  const [currentTheme, setCurrentTheme] = useState('theme-bone');
-  const [mode, setMode] = useState<'talk' | 'entry'>('talk');
+  const { t, language, setLanguage, availableLanguages } = useTranslation();
+  
+  const [currentView, setCurrentView] = useState<'main' | 'configs' | 'settings'>(() => {
+    return (localStorage.getItem('gw_currentView') as any) || 'main';
+  });
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('gw_currentTheme') || 'theme-bone';
+  });
+  const [mode, setMode] = useState<'talk' | 'entry'>(() => {
+    return (localStorage.getItem('gw_mode') as any) || 'talk';
+  });
+  const [inputStyle, setInputStyle] = useState<'step' | 'glide'>(() => {
+    return (localStorage.getItem('gw_inputStyle') as any) || 'step';
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
   
-  const [configs, setConfigs] = useState<WordConfig[]>([
-    {
-      id: 'default-1',
-      title: 'Default Config',
-      description: 'Basic daily conversational words',
-      dictionary: {
-        'UP': 'Merhaba',
-        'DOWN': 'Nasılsın',
-        'RIGHT': 'Evet',
-        'LEFT': 'Hayır',
-        'UP,UP': 'Teşekkürler'
+  const [configs, setConfigs] = useState<WordConfig[]>(() => {
+    const saved = localStorage.getItem('gw_configs');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse configs', e);
       }
     }
-  ]);
-  const [activeConfigId, setActiveConfigId] = useState<string>('default-1');
+    return DEFAULT_CONFIGS;
+  });
+  const [activeConfigId, setActiveConfigId] = useState<string>(() => {
+    return localStorage.getItem('gw_activeConfigId') || 'default-1';
+  });
 
   const activeConfig = configs.find(c => c.id === activeConfigId) || configs[0];
 
@@ -106,16 +165,53 @@ export default function App() {
   }, [currentTheme]);
   const dictionary = activeConfig.dictionary;
 
-  const [currentSequence, setCurrentSequence] = useState<Direction[]>([]);
-  const [confirmedText, setConfirmedText] = useState<string[]>([]);
+  const [currentSequenceState, setCurrentSequenceState] = useState<Direction[]>([]);
+  const currentSequenceRef = useRef<Direction[]>([]);
+  const setCurrentSequence = (updater: React.SetStateAction<Direction[]>) => {
+    const next = typeof updater === 'function' ? (updater as any)(currentSequenceRef.current) : updater;
+    currentSequenceRef.current = next;
+    setCurrentSequenceState(next);
+  };
+  const currentSequence = currentSequenceState;
+  const [isEditingSymbols, setIsEditingSymbols] = useState(false);
+  const [quickSymbols, setQuickSymbols] = useState<string[]>(() => {
+    const saved = localStorage.getItem('gw_quickSymbols');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error('Failed to parse quick symbols', e); }
+    }
+    return DEFAULT_QUICK_SYMBOLS;
+  });
+
+  const [confirmedText, setConfirmedText] = useState<string[]>(() => {
+    const saved = localStorage.getItem('gw_confirmedText');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse confirmedText', e);
+      }
+    }
+    return [];
+  });
+  
+  useEffect(() => { localStorage.setItem('gw_currentView', currentView); }, [currentView]);
+  useEffect(() => { localStorage.setItem('gw_currentTheme', currentTheme); }, [currentTheme]);
+  useEffect(() => { localStorage.setItem('gw_mode', mode); }, [mode]);
+  useEffect(() => { localStorage.setItem('gw_inputStyle', inputStyle); }, [inputStyle]);
+  useEffect(() => { localStorage.setItem('gw_configs', JSON.stringify(configs)); }, [configs]);
+  useEffect(() => { localStorage.setItem('gw_activeConfigId', activeConfigId); }, [activeConfigId]);
+  useEffect(() => { localStorage.setItem('gw_confirmedText', JSON.stringify(confirmedText)); }, [confirmedText]);
+  useEffect(() => { localStorage.setItem('gw_quickSymbols', JSON.stringify(quickSymbols)); }, [quickSymbols]);
   
   const [isSaving, setIsSaving] = useState(false);
   const [isManualInput, setIsManualInput] = useState(false);
+  const [isModalReady, setIsModalReady] = useState(false);
   const [newWord, setNewWord] = useState('');
   
   const [fontSizeLevel, setFontSizeLevel] = useState(1);
   const textAreaRef = useRef<HTMLDivElement>(null);
   const prevLengthRef = useRef(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const currentSequenceKey = currentSequence.join(',');
   const previewWord = dictionary[currentSequenceKey] || 
@@ -129,18 +225,52 @@ export default function App() {
   };
 
   const startPos = useRef<{ x: number, y: number } | null>(null);
+  const lastWaypoint = useRef<{ x: number, y: number } | null>(null);
+  const lastDirection = useRef<Direction | null>(null);
+  const pointerTimeoutRef = useRef<number | null>(null);
+  const currentPosRef = useRef<{ x: number, y: number } | null>(null);
+  const isGlidePausedRef = useRef(false);
   const trailRef = useRef<SVGPolylineElement>(null);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (!e.isPrimary) return;
+    if (!e.isPrimary) {
+      if (inputStyle === 'glide' && startPos.current) {
+        isGlidePausedRef.current = true;
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([30, 50, 30]);
+        }
+      }
+      return;
+    }
+    
+    if (pointerTimeoutRef.current) clearTimeout(pointerTimeoutRef.current);
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
     startPos.current = { x: e.clientX, y: e.clientY };
+    lastWaypoint.current = { x: e.clientX, y: e.clientY };
+    lastDirection.current = null;
+    currentPosRef.current = { x: e.clientX, y: e.clientY };
+    
+    let isResuming = false;
+    if (inputStyle === 'glide') {
+      if (isGlidePausedRef.current) {
+        isResuming = true;
+        isGlidePausedRef.current = false;
+      } else {
+        setCurrentSequence([]);
+      }
+    }
     
     if (trailRef.current) {
-      trailRef.current.setAttribute('points', `${x},${y}`);
+      if (isResuming) {
+        const pts = trailRef.current.getAttribute('points') || '';
+        trailRef.current.setAttribute('points', pts + ` ${x},${y}`);
+      } else {
+        trailRef.current.setAttribute('points', `${x},${y}`);
+      }
       trailRef.current.style.opacity = '1';
       trailRef.current.style.transition = 'none';
     }
@@ -154,34 +284,87 @@ export default function App() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    currentPosRef.current = { x: e.clientX, y: e.clientY };
+    
     if (trailRef.current) {
       const pts = trailRef.current.getAttribute('points') || '';
       trailRef.current.setAttribute('points', pts + ` ${x},${y}`);
     }
+
+    if (inputStyle === 'glide') {
+      if (pointerTimeoutRef.current) clearTimeout(pointerTimeoutRef.current);
+      pointerTimeoutRef.current = window.setTimeout(() => {
+        lastDirection.current = null;
+        if (currentPosRef.current) {
+          lastWaypoint.current = currentPosRef.current;
+        }
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(20);
+        }
+      }, 400);
+
+      if (lastWaypoint.current) {
+        const dx = e.clientX - lastWaypoint.current.x;
+        const dy = e.clientY - lastWaypoint.current.y;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+        
+        if (absDx > 35 || absDy > 35) {
+          let dir: Direction;
+          if (absDx > absDy) {
+            dir = dx > 0 ? 'RIGHT' : 'LEFT';
+          } else {
+            dir = dy > 0 ? 'DOWN' : 'UP';
+          }
+          
+          if (dir !== lastDirection.current) {
+            setCurrentSequence(prev => [...prev, dir]);
+            lastDirection.current = dir;
+            lastWaypoint.current = { x: e.clientX, y: e.clientY };
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+              navigator.vibrate(30);
+            }
+          }
+        }
+      }
+    }
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    if (!startPos.current || !e.isPrimary) return;
+    if (!e.isPrimary) return;
+    if (!startPos.current) return;
     
-    const dx = e.clientX - startPos.current.x;
-    const dy = e.clientY - startPos.current.y;
+    if (pointerTimeoutRef.current) clearTimeout(pointerTimeoutRef.current);
     
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    
-    if (absDx > 30 || absDy > 30) {
-      let dir: Direction;
-      if (absDx > absDy) {
-        dir = dx > 0 ? 'RIGHT' : 'LEFT';
-      } else {
-        dir = dy > 0 ? 'DOWN' : 'UP';
+    if (inputStyle === 'step') {
+      const dx = e.clientX - startPos.current.x;
+      const dy = e.clientY - startPos.current.y;
+      
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+      
+      if (absDx > 30 || absDy > 30) {
+        let dir: Direction;
+        if (absDx > absDy) {
+          dir = dx > 0 ? 'RIGHT' : 'LEFT';
+        } else {
+          dir = dy > 0 ? 'DOWN' : 'UP';
+        }
+        setCurrentSequence(prev => [...prev, dir]);
+      } else if (absDx < 10 && absDy < 10) {
+        handleStop(currentSequenceRef.current);
       }
-      setCurrentSequence(prev => [...prev, dir]);
-    } else if (absDx < 10 && absDy < 10) {
-      handleStop();
+    } else {
+      if (!isGlidePausedRef.current) {
+        const dx = e.clientX - startPos.current.x;
+        const dy = e.clientY - startPos.current.y;
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+          handleStop(currentSequenceRef.current);
+        }
+      }
     }
     
-    if (trailRef.current) {
+    if (!isGlidePausedRef.current && trailRef.current) {
       trailRef.current.style.transition = 'opacity 0.3s ease';
       trailRef.current.style.opacity = '0';
       setTimeout(() => {
@@ -197,7 +380,7 @@ export default function App() {
 
   const appendWord = (word: string) => {
     setConfirmedText(prev => {
-      if (word.startsWith('-') && prev.length > 0) {
+      if (word.startsWith('-') && word.length > 1 && prev.length > 0) {
         const lastWord = prev[prev.length - 1];
         const suffix = word.slice(1);
         return [...prev.slice(0, -1), lastWord + suffix];
@@ -208,23 +391,39 @@ export default function App() {
 
   const addSymbol = (symbol: string, withSpace: boolean) => {
     setConfirmedText(prev => {
-      if (withSpace || prev.length === 0) {
-        return [...prev, symbol];
+      if (symbol.startsWith('-') && symbol.length > 1) {
+        if (prev.length > 0) {
+          const lastWord = prev[prev.length - 1];
+          const suffix = symbol.slice(1);
+          return [...prev.slice(0, -1), lastWord + suffix];
+        }
+        return [symbol.slice(1)];
       }
-      const newArr = [...prev];
-      newArr[newArr.length - 1] = newArr[newArr.length - 1] + symbol;
-      return newArr;
+
+      const isAttachedPunctuation = /^[.,!?:;%)]$/.test(symbol);
+      
+      if (!withSpace && isAttachedPunctuation) {
+        if (prev.length === 0) return [symbol];
+        const newArr = [...prev];
+        newArr[newArr.length - 1] = newArr[newArr.length - 1] + symbol;
+        return newArr;
+      }
+
+      return [...prev, symbol];
     });
   };
 
-  const handleStop = () => {
+  const handleStop = (sequenceToUse = currentSequenceRef.current) => {
     if (mode === 'talk') {
-      if (previewWord) {
-        appendWord(previewWord);
+      const seqKey = sequenceToUse.join(',');
+      const word = dictionary[seqKey] || 
+        (sequenceToUse.length > 0 ? dictionary[sequenceToUse[sequenceToUse.length - 1]] : '');
+      if (word) {
+        appendWord(word);
       }
       setCurrentSequence([]);
     } else {
-      if (currentSequence.length > 0) {
+      if (sequenceToUse.length > 0) {
         setIsSaving(true);
       }
     }
@@ -254,7 +453,20 @@ export default function App() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'tr-TR';
+      const targetLang = activeConfig.language || 'en-US';
+      utterance.lang = targetLang;
+      
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const exactMatch = voices.find(v => v.lang === targetLang || v.lang.replace('_', '-') === targetLang);
+        const partialMatch = voices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
+        if (exactMatch) {
+          utterance.voice = exactMatch;
+        } else if (partialMatch) {
+          utterance.voice = partialMatch;
+        }
+      }
+
       window.speechSynthesis.speak(utterance);
     } else {
       alert("Cihazınızda metin okuma özelliği desteklenmiyor.");
@@ -270,12 +482,28 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (isSaving || isManualInput) {
+      setIsModalReady(false);
+      const timer = setTimeout(() => setIsModalReady(true), 400);
+      return () => clearTimeout(timer);
+    } else {
+      setIsModalReady(false);
+    }
+  }, [isSaving, isManualInput]);
+
   useLayoutEffect(() => {
     if (confirmedText.length < prevLengthRef.current) {
       setFontSizeLevel(1); // Reset on delete
     }
     prevLengthRef.current = confirmedText.length;
   }, [confirmedText.length]);
+
+  useLayoutEffect(() => {
+    if ((isSaving || isManualInput) && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isSaving, isManualInput]);
 
   useLayoutEffect(() => {
     if (!textAreaRef.current) return;
@@ -305,6 +533,7 @@ export default function App() {
       id: newId,
       title: 'New Configuration',
       description: 'Custom word set',
+      language: 'en-US',
       dictionary: {}
     }]);
   };
@@ -367,14 +596,14 @@ export default function App() {
               >
                 <Menu className="w-5 h-5 text-[#2F3437]" strokeWidth={2.5} />
               </button>
-              <h2 className="text-xl font-sans tracking-tight pt-0.5 text-text font-semibold">Menu</h2>
+              <h2 className="text-xl font-sans tracking-tight pt-0.5 text-text font-semibold">{t('menu.title')}</h2>
             </div>
             
             <nav className="flex flex-col gap-2">
-              <button onClick={() => { setCurrentView('main'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'main' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>Talk / Entry</button>
-              <button onClick={() => { setCurrentView('configs'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'configs' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>Configurations</button>
-              <button onClick={() => { setCurrentView('settings'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'settings' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>Settings</button>
-              <button className="text-left px-4 py-3 text-muted font-medium hover:bg-border/30 hover:text-text rounded-md transition-colors tracking-wide">About</button>
+              <button onClick={() => { setCurrentView('main'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'main' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>{t('menu.talkEntry')}</button>
+              <button onClick={() => { setCurrentView('configs'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'configs' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>{t('menu.configs')}</button>
+              <button onClick={() => { setCurrentView('settings'); setIsMenuOpen(false); setEditingConfigId(null); }} className={`text-left px-4 py-3 font-medium rounded-md transition-colors tracking-wide ${currentView === 'settings' ? 'bg-border/50 text-text' : 'text-muted hover:bg-border/30 hover:text-text'}`}>{t('menu.settings')}</button>
+              <button className="text-left px-4 py-3 text-muted font-medium hover:bg-border/30 hover:text-text rounded-md transition-colors tracking-wide">{t('menu.about')}</button>
             </nav>
           </div>
         </div>
@@ -389,7 +618,24 @@ export default function App() {
           >
              <Menu className="w-5 h-5 text-[#2F3437]" strokeWidth={2.5} />
           </button>
-          <h1 className="text-xl font-sans tracking-tight pt-0.5 text-text font-semibold">Glide & Write</h1>
+          <h1 className="text-xl font-sans tracking-tight pt-0.5 text-text font-semibold">G&W</h1>
+          
+          {currentView === 'main' && (
+            <div className="flex bg-surface border border-border rounded-lg p-0.5 ml-1 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+              <button
+                onClick={() => { setInputStyle('step'); setCurrentSequence([]); }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inputStyle === 'step' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+              >
+                {t('header.step')}
+              </button>
+              <button
+                onClick={() => { setInputStyle('glide'); setCurrentSequence([]); }}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inputStyle === 'glide' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+              >
+                {t('header.glide')}
+              </button>
+            </div>
+          )}
         </div>
         {currentView === 'main' && (
           <div className="flex items-center gap-3">
@@ -404,7 +650,7 @@ export default function App() {
                 setCurrentSequence([]); 
               }}
             >
-              {mode === 'talk' ? 'Talk On' : 'Entry On'}
+              {mode === 'talk' ? t('header.talkOn') : t('header.entryOn')}
             </button>
           </div>
         )}
@@ -413,15 +659,15 @@ export default function App() {
       {currentView === 'settings' ? (
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-2xl mx-auto w-full flex flex-col gap-8 hide-scrollbar pb-24">
           <div className="flex flex-col gap-4">
-            <h3 className="text-lg font-semibold tracking-tight text-text">Appearance (Themes)</h3>
+            <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.appearance')}</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
-                { id: 'theme-bone', name: 'Bone', desc: 'Warm Light', color: '#F7F6F3', border: '#EAEAEA' },
-                { id: 'theme-oatmeal', name: 'Oatmeal', desc: 'Cozy Editorial', color: '#F9F8F6', border: '#E8E4D9' },
-                { id: 'theme-slate', name: 'Slate', desc: 'Cool Gray', color: '#E2E8F0', border: '#CBD5E1' },
-                { id: 'theme-sage', name: 'Sage', desc: 'Botanic Light', color: '#E3E8E3', border: '#C8D4C8' },
-                { id: 'theme-charcoal', name: 'Charcoal', desc: 'Soft Dark', color: '#111111', border: '#333333' },
-                { id: 'theme-midnight', name: 'Midnight', desc: 'Deep Navy', color: '#0F172A', border: '#334155' },
+                { id: 'theme-bone', name: t('settings.themes.bone'), desc: t('settings.themes.boneDesc'), color: '#F7F6F3', border: '#EAEAEA' },
+                { id: 'theme-oatmeal', name: t('settings.themes.oatmeal'), desc: t('settings.themes.oatmealDesc'), color: '#F9F8F6', border: '#E8E4D9' },
+                { id: 'theme-slate', name: t('settings.themes.slate'), desc: t('settings.themes.slateDesc'), color: '#E2E8F0', border: '#CBD5E1' },
+                { id: 'theme-sage', name: t('settings.themes.sage'), desc: t('settings.themes.sageDesc'), color: '#E3E8E3', border: '#C8D4C8' },
+                { id: 'theme-charcoal', name: t('settings.themes.charcoal'), desc: t('settings.themes.charcoalDesc'), color: '#111111', border: '#333333' },
+                { id: 'theme-midnight', name: t('settings.themes.midnight'), desc: t('settings.themes.midnightDesc'), color: '#0F172A', border: '#334155' },
               ].map(theme => (
                 <button
                   key={theme.id}
@@ -443,6 +689,86 @@ export default function App() {
                 </button>
               ))}
             </div>
+            
+            <div className="flex flex-col gap-4 mt-6">
+              <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.uiLanguage')}</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {availableLanguages.map(lang => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${language === lang.code ? 'bg-surface border-text text-text shadow-sm' : 'bg-surface/50 border-border text-muted hover:border-[#D5D5D5] hover:text-text'}`}
+                  >
+                    <Globe className="w-4 h-4 opacity-50" />
+                    {lang.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.quickSymbols')}</h3>
+                <div className="flex items-center gap-2">
+                  {isEditingSymbols && (
+                    <button 
+                      onClick={() => setQuickSymbols(DEFAULT_QUICK_SYMBOLS)}
+                      className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-muted hover:text-text transition-colors"
+                    >
+                      {t('settings.reset')}
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setIsEditingSymbols(!isEditingSymbols)}
+                    className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-text hover:bg-surface transition-colors"
+                  >
+                    {isEditingSymbols ? t('settings.done') : t('settings.edit')}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-7 gap-2">
+                  {quickSymbols.slice(0, 7).map((sym, i) => (
+                     <div key={i} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
+                       {isEditingSymbols ? (
+                         <input
+                           maxLength={5}
+                           value={sym}
+                           onChange={(e) => {
+                             const newSyms = [...quickSymbols];
+                             newSyms[i] = e.target.value;
+                             setQuickSymbols(newSyms);
+                           }}
+                           className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
+                         />
+                       ) : (
+                         <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
+                       )}
+                     </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-6 gap-2">
+                  {quickSymbols.slice(7, 13).map((sym, i) => (
+                     <div key={i + 7} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
+                       {isEditingSymbols ? (
+                         <input
+                           maxLength={5}
+                           value={sym}
+                           onChange={(e) => {
+                             const newSyms = [...quickSymbols];
+                             newSyms[i + 7] = e.target.value;
+                             setQuickSymbols(newSyms);
+                           }}
+                           className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
+                         />
+                       ) : (
+                         <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
+                       )}
+                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : currentView === 'configs' ? (
@@ -461,7 +787,7 @@ export default function App() {
                    </button>
                    <div className="flex flex-col">
                      <h2 className="text-xl font-semibold text-text">{config.title}</h2>
-                     <span className="text-sm text-muted">Edit mapped sequences</span>
+                     <span className="text-sm text-muted">{t('configs.editMapped')}</span>
                    </div>
                  </div>
                  
@@ -485,7 +811,7 @@ export default function App() {
                            value={word}
                            onChange={(e) => handleUpdateDictionaryWord(config.id, sequence, e.target.value)}
                            className="flex-1 bg-transparent outline-none text-text font-medium placeholder:text-muted/40 px-2 text-lg"
-                           placeholder="Type word..."
+                           placeholder={t('configs.typeWord')}
                          />
                        </div>
                      );
@@ -510,14 +836,53 @@ export default function App() {
                           className="text-lg font-semibold text-text bg-transparent outline-none w-full placeholder:text-muted/40"
                           value={config.title}
                           onChange={e => handleUpdateConfig(config.id, { title: e.target.value })}
-                          placeholder="Configuration Title"
+                          placeholder={t('configs.configTitle')}
                         />
                         <input 
-                          className="text-sm text-muted bg-transparent outline-none w-full placeholder:text-muted/40"
+                          className="text-sm text-muted bg-transparent outline-none w-full placeholder:text-muted/40 mb-1.5"
                           value={config.description}
                           onChange={e => handleUpdateConfig(config.id, { description: e.target.value })}
-                          placeholder="Description..."
+                          placeholder={t('configs.description')}
                         />
+                        <select
+                          value={config.language || 'en-US'}
+                          onChange={e => handleUpdateConfig(config.id, { language: e.target.value })}
+                          onClick={e => e.stopPropagation()}
+                          className="bg-transparent border border-border text-xs text-muted font-medium rounded p-1 outline-none focus:border-text transition-colors w-fit"
+                        >
+                          <option value="en-US">English (US)</option>
+                          <option value="en-GB">English (UK)</option>
+                          <option value="en-AU">English (Australia)</option>
+                          <option value="tr-TR">Türkçe</option>
+                          <option value="es-ES">Español (España)</option>
+                          <option value="es-MX">Español (México)</option>
+                          <option value="fr-FR">Français (France)</option>
+                          <option value="fr-CA">Français (Canada)</option>
+                          <option value="de-DE">Deutsch</option>
+                          <option value="it-IT">Italiano</option>
+                          <option value="pt-BR">Português (Brasil)</option>
+                          <option value="pt-PT">Português (Portugal)</option>
+                          <option value="ru-RU">Русский</option>
+                          <option value="zh-CN">中文 (简体)</option>
+                          <option value="zh-TW">中文 (繁體)</option>
+                          <option value="ja-JP">日本語</option>
+                          <option value="ko-KR">한국어</option>
+                          <option value="ar-SA">العربية</option>
+                          <option value="hi-IN">हिन्दी</option>
+                          <option value="nl-NL">Nederlands</option>
+                          <option value="pl-PL">Polski</option>
+                          <option value="sv-SE">Svenska</option>
+                          <option value="da-DK">Dansk</option>
+                          <option value="fi-FI">Suomi</option>
+                          <option value="no-NO">Norsk</option>
+                          <option value="el-GR">Ελληνικά</option>
+                          <option value="hu-HU">Magyar</option>
+                          <option value="cs-CZ">Čeština</option>
+                          <option value="ro-RO">Română</option>
+                          <option value="th-TH">ไทย</option>
+                          <option value="id-ID">Bahasa Indonesia</option>
+                          <option value="vi-VN">Tiếng Việt</option>
+                        </select>
                      </div>
                      <button 
                        onClick={() => setActiveConfigId(config.id)}
@@ -549,7 +914,7 @@ export default function App() {
                    className="w-full py-5 mt-2 border-2 border-dashed border-[#D5D5D5] rounded-xl flex items-center justify-center gap-2 text-muted font-medium hover:bg-surface hover:border-border hover:shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:text-text transition-all active:scale-[0.98]"
                  >
                    <Plus className="w-5 h-5" />
-                   Create New Configuration
+                   {t('configs.createNew')}
                  </button>
                </>
              )}
@@ -578,7 +943,7 @@ export default function App() {
             )}
             {confirmedText.length === 0 && (!previewWord || mode === 'entry') && (
               <span className={`text-muted ${fontClass} font-serif tracking-tight leading-[1.1] opacity-30 pointer-events-none transition-all`}>
-                Drafting...
+                {t('main.drafting')}
               </span>
             )}
           </div>
@@ -597,7 +962,7 @@ export default function App() {
                 {/* Preview Badge */}
                 {mode === 'entry' && previewWord && (
                   <div className="text-[#9F2F2D] font-medium bg-[#FDEBEC] border border-[#FDEBEC] px-4 py-2 rounded-md text-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)] whitespace-nowrap">
-                    Existing: "{previewWord}"
+                    {t('main.existing')} "{previewWord}"
                   </div>
                 )}
                 
@@ -629,7 +994,7 @@ export default function App() {
             {mode === 'entry' && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex items-center gap-2 bg-[#FDEBEC]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#FDEBEC] pointer-events-none transition-opacity duration-300 animate-in fade-in shadow-[0_4px_12px_rgba(159,47,45,0.12)]">
                 <div className="w-2 h-2 rounded-full bg-[#9F2F2D] animate-pulse" />
-                <span className="text-[10px] font-bold tracking-widest text-[#9F2F2D] uppercase">Mapping</span>
+                <span className="text-[10px] font-bold tracking-widest text-[#9F2F2D] uppercase">{t('main.mapping')}</span>
               </div>
             )}
             {/* Background Hint Graphics */}
@@ -669,12 +1034,12 @@ export default function App() {
         {/* Punctuation Grid */}
         <div className="w-[calc(100%-2rem)] sm:w-[calc(100%-5rem)] mx-auto shrink-0 flex flex-col gap-1.5 mt-1 mb-1 sm:mb-2">
           <div className="flex w-full gap-1.5 justify-between">
-            {['.', ',', '!', '?', "'", ':', ';'].map(sym => (
+            {quickSymbols.slice(0, 7).map(sym => (
               <PunctuationButton key={sym} symbol={sym} onAdd={addSymbol} />
             ))}
           </div>
           <div className="flex w-full gap-1.5 justify-between px-[3%]">
-            {['+', '-', '=', '(', ')', '%'].map(sym => (
+            {quickSymbols.slice(7, 13).map(sym => (
               <PunctuationButton key={sym} symbol={sym} onAdd={addSymbol} />
             ))}
           </div>
@@ -688,19 +1053,19 @@ export default function App() {
         <div className="shrink-0 max-w-4xl mx-auto w-full grid grid-cols-4 px-4 sm:px-6 py-4 sm:py-6 border-t border-border bg-transparent relative z-20 pb-safe gap-2 sm:gap-4">
           <button onClick={() => setConfirmedText([])} className="flex flex-col items-center justify-center p-3 sm:p-4 text-muted hover:text-text hover:bg-surface border border-transparent hover:border-border transition-all rounded-lg active:scale-[0.95]">
             <Delete className="w-5 h-5 mb-2" strokeWidth={2} />
-            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">Clear</span>
+            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.clear')}</span>
           </button>
           <button onClick={() => setConfirmedText(prev => prev.slice(0, -1))} className="flex flex-col items-center justify-center p-4 text-muted hover:text-text hover:bg-surface border border-transparent hover:border-border transition-all rounded-lg active:scale-[0.95]">
             <RotateCcw className="w-5 h-5 mb-2" strokeWidth={2} />
-            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">Undo</span>
+            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.undo')}</span>
           </button>
           <button onClick={() => setIsManualInput(true)} className="flex flex-col items-center justify-center p-4 text-muted hover:text-text hover:bg-surface border border-transparent hover:border-border transition-all rounded-lg active:scale-[0.95]">
             <Keyboard className="w-5 h-5 mb-2" strokeWidth={2} />
-            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">Type</span>
+            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.type')}</span>
           </button>
           <button onClick={() => speakText(confirmedText.join(' '))} className="flex flex-col items-center justify-center p-4 text-text bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all rounded-lg active:scale-[0.95]">
             <Volume2 className="w-5 h-5 mb-2" strokeWidth={2} />
-            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">Speak</span>
+            <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.speak')}</span>
           </button>
         </div>
       )}
@@ -709,15 +1074,18 @@ export default function App() {
       {(isSaving || isManualInput) && (
         <div 
           className="fixed inset-0 z-[200] bg-text/10 flex items-center justify-center p-4 backdrop-blur-sm"
-          onClick={() => {
-            setIsSaving(false);
-            setIsManualInput(false);
-            setNewWord('');
+          style={{ pointerEvents: isModalReady ? 'auto' : 'none' }}
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsSaving(false);
+              setIsManualInput(false);
+              setNewWord('');
+            }
           }}
         >
-          <div className="bg-surface border border-border rounded-xl p-8 w-full max-w-[360px] shadow-[0_8px_40px_rgba(0,0,0,0.06)] transform transition-transform animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface border border-border rounded-xl p-8 w-full max-w-[360px] shadow-[0_8px_40px_rgba(0,0,0,0.06)] transform transition-transform animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-xl font-sans font-medium tracking-tight mb-6 text-text">
-              {isSaving ? 'Map Action' : 'Enter Word'}
+              {isSaving ? t('modal.mapAction') : t('modal.enterWord')}
             </h3>
             
             {isSaving && currentSequence.length > 0 && (
@@ -735,11 +1103,11 @@ export default function App() {
             
             <input 
               type="text" 
-              autoFocus
+              ref={inputRef}
               className="w-full bg-canvas border border-border rounded-md outline-none py-3 px-4 mb-8 text-base font-medium text-text placeholder:text-muted focus:border-text focus:bg-surface transition-colors"
               value={newWord}
               onChange={e => setNewWord(e.target.value)}
-              placeholder="Type your word..."
+              placeholder={t('modal.typeYourWord')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSaveWord();
               }}
@@ -755,13 +1123,13 @@ export default function App() {
                   setCurrentSequence([]);
                 }}
               >
-                Cancel
+                {t('modal.cancel')}
               </button>
               <button 
                 className="px-6 py-2.5 bg-text text-surface hover:bg-[#2F3437] rounded-md text-sm font-medium transition-all active:scale-[0.98]"
                 onClick={handleSaveWord}
               >
-                Save
+                {t('modal.save')}
               </button>
             </div>
           </div>
