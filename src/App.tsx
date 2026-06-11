@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { Menu, Delete, RotateCcw, Keyboard, Volume2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Trash2, Plus, Globe, Layers } from 'lucide-react';
+import { Menu, Delete, RotateCcw, Keyboard, Volume2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Trash2, Plus, Globe, Layers, ChevronDown } from 'lucide-react';
 import { useTranslation } from './i18n';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -176,6 +176,32 @@ export default function App() {
   const [layerTogglePosition, setLayerTogglePosition] = useState<'left' | 'right'>(() => {
     return (localStorage.getItem('gw_layerTogglePosition') as any) || 'right';
   });
+  const [glidePauseDuration, setGlidePauseDuration] = useState<number>(() => {
+    const saved = localStorage.getItem('gw_glidePauseDuration');
+    return saved ? parseInt(saved, 10) : 400;
+  });
+
+  const [settingsAccordionState, setSettingsAccordionState] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('gw_settingsAccordionState');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      appearance: false,
+      language: false,
+      glide: false,
+      layerToggle: false,
+      quickSymbols: false
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gw_settingsAccordionState', JSON.stringify(settingsAccordionState));
+  }, [settingsAccordionState]);
+
+  const toggleAccordion = (key: string) => {
+    setSettingsAccordionState(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     localStorage.setItem('gw_layerCount', layerCount.toString());
@@ -186,6 +212,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('gw_layerTogglePosition', layerTogglePosition);
   }, [layerTogglePosition]);
+  useEffect(() => {
+    localStorage.setItem('gw_glidePauseDuration', glidePauseDuration.toString());
+  }, [glidePauseDuration]);
   
   const [configs, setConfigs] = useState<WordConfig[]>(() => {
     const saved = localStorage.getItem('gw_configs');
@@ -429,7 +458,7 @@ export default function App() {
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
           navigator.vibrate(20);
         }
-      }, 400);
+      }, glidePauseDuration);
 
       if (lastWaypoint.current) {
         const dx = e.clientX - lastWaypoint.current.x;
@@ -810,191 +839,246 @@ export default function App() {
 
       {currentView === 'settings' ? (
         <div className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-2xl mx-auto w-full flex flex-col gap-8 hide-scrollbar pb-24">
-          <div className="flex flex-col gap-4">
-            <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.appearance')}</h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {[
-                { id: 'theme-bone', name: t('settings.themes.bone'), desc: t('settings.themes.boneDesc'), color: '#F7F6F3', border: '#EAEAEA' },
-                { id: 'theme-oatmeal', name: t('settings.themes.oatmeal'), desc: t('settings.themes.oatmealDesc'), color: '#F9F8F6', border: '#E8E4D9' },
-                { id: 'theme-slate', name: t('settings.themes.slate'), desc: t('settings.themes.slateDesc'), color: '#E2E8F0', border: '#CBD5E1' },
-                { id: 'theme-sage', name: t('settings.themes.sage'), desc: t('settings.themes.sageDesc'), color: '#E3E8E3', border: '#C8D4C8' },
-                { id: 'theme-charcoal', name: t('settings.themes.charcoal'), desc: t('settings.themes.charcoalDesc'), color: '#111111', border: '#333333' },
-                { id: 'theme-midnight', name: t('settings.themes.midnight'), desc: t('settings.themes.midnightDesc'), color: '#0F172A', border: '#334155' },
-              ].map(theme => (
-                <button
-                  key={theme.id}
-                  onClick={() => setCurrentTheme(theme.id)}
-                  className={`flex flex-col items-start text-left p-4 rounded-xl border transition-all duration-200 active:scale-[0.98] relative overflow-hidden ${
-                    currentTheme === theme.id 
-                      ? 'border-text bg-surface shadow-sm' 
-                      : 'border-border bg-surface/50 hover:bg-surface hover:border-border'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div 
-                      className="w-4 h-4 rounded-full shadow-inner" 
-                      style={{ backgroundColor: theme.color, border: `1px solid ${theme.border}` }}
-                    />
-                    <span className={`text-sm font-semibold ${currentTheme === theme.id ? 'text-text' : 'text-muted'}`}>{theme.name}</span>
-                  </div>
-                  <span className="text-[11px] font-medium text-muted opacity-80">{theme.desc}</span>
-                </button>
-              ))}
+          <div className="flex flex-col">
+            {/* Appearance Settings */}
+            <div className="flex flex-col gap-4 py-5 border-b border-border/50">
+              <button onClick={() => toggleAccordion('appearance')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.appearance')}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.appearance ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsAccordionState.appearance && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {[
+                    { id: 'theme-bone', name: t('settings.themes.bone'), desc: t('settings.themes.boneDesc'), color: '#F7F6F3', border: '#EAEAEA' },
+                    { id: 'theme-oatmeal', name: t('settings.themes.oatmeal'), desc: t('settings.themes.oatmealDesc'), color: '#F9F8F6', border: '#E8E4D9' },
+                    { id: 'theme-slate', name: t('settings.themes.slate'), desc: t('settings.themes.slateDesc'), color: '#E2E8F0', border: '#CBD5E1' },
+                    { id: 'theme-sage', name: t('settings.themes.sage'), desc: t('settings.themes.sageDesc'), color: '#E3E8E3', border: '#C8D4C8' },
+                    { id: 'theme-charcoal', name: t('settings.themes.charcoal'), desc: t('settings.themes.charcoalDesc'), color: '#111111', border: '#333333' },
+                    { id: 'theme-midnight', name: t('settings.themes.midnight'), desc: t('settings.themes.midnightDesc'), color: '#0F172A', border: '#334155' },
+                  ].map(theme => (
+                    <button
+                      key={theme.id}
+                      onClick={() => setCurrentTheme(theme.id)}
+                      className={`flex flex-col items-start text-left p-4 rounded-xl border transition-all duration-200 active:scale-[0.98] relative overflow-hidden ${
+                        currentTheme === theme.id 
+                          ? 'border-text bg-surface shadow-sm' 
+                          : 'border-border bg-surface/50 hover:bg-surface hover:border-border'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div 
+                          className="w-4 h-4 rounded-full shadow-inner" 
+                          style={{ backgroundColor: theme.color, border: `1px solid ${theme.border}` }}
+                        />
+                        <span className={`text-sm font-semibold ${currentTheme === theme.id ? 'text-text' : 'text-muted'}`}>{theme.name}</span>
+                      </div>
+                      <span className="text-[11px] font-medium text-muted opacity-80">{theme.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             
-            <div className="flex flex-col gap-4 mt-6">
-              <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.uiLanguage')}</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {availableLanguages.map(lang => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`p-3 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${language === lang.code ? 'bg-surface border-text text-text shadow-sm' : 'bg-surface/50 border-border text-muted hover:border-[#D5D5D5] hover:text-text'}`}
-                  >
-                    <Globe className="w-4 h-4 opacity-50" />
-                    {lang.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Layer Toggle Settings */}
-            <div className="flex flex-col gap-4 mt-6">
-              <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.layerToggle')}</h3>
-
-              {/* Layer Count Slider */}
-              <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-text">{t('settings.numberOfLayers')}</span>
-                  <span className="text-[11px] text-muted">{t('settings.upTo4Dictionaries')}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => setLayerCount(Math.max(2, layerCount - 1))}
-                    disabled={layerCount <= 2}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-canvas border border-border text-text disabled:opacity-50"
-                  >-</button>
-                  <span className="text-sm font-bold w-4 text-center">{layerCount}</span>
-                  <button 
-                    onClick={() => setLayerCount(Math.min(4, layerCount + 1))}
-                    disabled={layerCount >= 4}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-canvas border border-border text-text disabled:opacity-50"
-                  >+</button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
-                <span className="text-sm font-medium text-text">{t('settings.showLayerToggle')}</span>
-                <button
-                  onClick={() => setLayerToggleEnabled(!layerToggleEnabled)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${layerToggleEnabled ? 'bg-text' : 'bg-border'}`}
-                >
-                  <div className={`w-5 h-5 bg-surface rounded-full shadow-sm absolute top-0.5 transition-transform duration-300 ${layerToggleEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
-              
-              {layerToggleEnabled && (
-                <div className="flex bg-surface border border-border rounded-lg p-1 shadow-sm">
-                  <button
-                    onClick={() => setLayerTogglePosition('left')}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'left' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
-                  >
-                    {t('settings.leftSide')}
-                  </button>
-                  <button
-                    onClick={() => setLayerTogglePosition('right')}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'right' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
-                  >
-                    {t('settings.rightSide')}
-                  </button>
+            {/* UI Language Settings */}
+            <div className="flex flex-col gap-4 py-5 border-b border-border/50">
+              <button onClick={() => toggleAccordion('language')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.uiLanguage')}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.language ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsAccordionState.language && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {availableLanguages.map(lang => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code)}
+                      className={`p-3 rounded-xl border text-sm font-semibold transition-all flex items-center justify-center gap-2 ${language === lang.code ? 'bg-surface border-text text-text shadow-sm' : 'bg-surface/50 border-border text-muted hover:border-[#D5D5D5] hover:text-text'}`}
+                    >
+                      <Globe className="w-4 h-4 opacity-50" />
+                      {lang.name}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            <div className="flex flex-col gap-4 mt-6">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-lg font-semibold tracking-tight text-text whitespace-nowrap">{t('settings.quickSymbols')}</h3>
-                
-                <div className="flex items-center justify-end flex-1 gap-2">
-                  <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1 shadow-sm">
-                    {[0, 1, 2, 3].map(i => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveQuickSymbolTemplate(i)}
-                        className={`w-7 h-6 flex items-center justify-center rounded text-xs font-bold transition-all ${
-                          activeQuickSymbolTemplate === i 
-                            ? 'bg-border text-text shadow-sm' 
-                            : 'text-muted hover:text-text'
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
+            {/* Glide Mode Settings */}
+            <div className="flex flex-col gap-4 py-5 border-b border-border/50">
+              <button onClick={() => toggleAccordion('glide')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.glidePauseDuration') || "Glide Pause Duration (ms)"}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.glide ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsAccordionState.glide && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted mb-2">{t('settings.glidePauseDesc') || "Adjust the wait time for continuous swipes in the same direction."}</p>
+                  <div className="flex items-center justify-between p-4 bg-surface/50 border border-border rounded-xl">
+                    <input
+                      type="range"
+                      min="100"
+                      max="1000"
+                      step="50"
+                      value={glidePauseDuration}
+                      onChange={(e) => setGlidePauseDuration(parseInt(e.target.value, 10))}
+                      className="w-full max-w-[200px] sm:max-w-xs accent-text"
+                    />
+                    <span className="text-lg font-medium font-mono min-w-[60px] text-right">{glidePauseDuration}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Layer Toggle Settings */}
+            <div className="flex flex-col gap-4 py-5 border-b border-border/50">
+              <button onClick={() => toggleAccordion('layerToggle')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.layerToggle')}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.layerToggle ? 'rotate-180' : ''}`} />
+              </button>
+
+              {settingsAccordionState.layerToggle && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-text">{t('settings.numberOfLayers')}</span>
+                      <span className="text-[11px] text-muted">{t('settings.upTo4Dictionaries')}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => setLayerCount(Math.max(2, layerCount - 1))}
+                        disabled={layerCount <= 2}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-canvas border border-border text-text disabled:opacity-50"
+                      >-</button>
+                      <span className="text-sm font-bold w-4 text-center">{layerCount}</span>
+                      <button 
+                        onClick={() => setLayerCount(Math.min(4, layerCount + 1))}
+                        disabled={layerCount >= 4}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-canvas border border-border text-text disabled:opacity-50"
+                      >+</button>
+                    </div>
                   </div>
 
-                  {isEditingSymbols && (
-                    <button 
-                      onClick={() => setQuickSymbols(
-                        activeQuickSymbolTemplate === 0 ? DEFAULT_QUICK_SYMBOLS :
-                        activeQuickSymbolTemplate === 1 ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '$', '€', '£', '₺'] :
-                        activeQuickSymbolTemplate === 2 ? ['@', '#', '&', '*', '_', '-', '+', '=', '/', '\\', '|', '~', '<', '>'] :
-                        ['😊', '😂', '😭', '😡', '👍', '👎', '❤️', '💔', '✓', '✗', '!', '?', '...', '']
-                      )}
-                      className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-muted hover:text-text transition-colors"
+                  <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
+                    <span className="text-sm font-medium text-text">{t('settings.showLayerToggle')}</span>
+                    <button
+                      onClick={() => setLayerToggleEnabled(!layerToggleEnabled)}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${layerToggleEnabled ? 'bg-text' : 'bg-border'}`}
                     >
-                      {t('settings.reset')}
+                      <div className={`w-5 h-5 bg-surface rounded-full shadow-sm absolute top-0.5 transition-transform duration-300 ${layerToggleEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
+                  </div>
+                  
+                  {layerToggleEnabled && (
+                    <div className="flex bg-surface border border-border rounded-lg p-1 shadow-sm">
+                      <button
+                        onClick={() => setLayerTogglePosition('left')}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'left' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+                      >
+                        {t('settings.leftSide')}
+                      </button>
+                      <button
+                        onClick={() => setLayerTogglePosition('right')}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'right' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+                      >
+                        {t('settings.rightSide')}
+                      </button>
+                    </div>
                   )}
-                  <button 
-                    onClick={() => setIsEditingSymbols(!isEditingSymbols)}
-                    className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-text hover:bg-surface transition-colors shrink-0"
-                  >
-                    {isEditingSymbols ? t('settings.done') : t('settings.edit')}
-                  </button>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-7 gap-2">
-                  {quickSymbols.slice(0, 7).map((sym, i) => (
-                     <div key={i} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
-                       {isEditingSymbols ? (
-                         <input
-                           maxLength={5}
-                           value={sym}
-                           onChange={(e) => {
-                             const newSyms = [...quickSymbols];
-                             newSyms[i] = e.target.value;
-                             setQuickSymbols(newSyms);
-                           }}
-                           className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
-                         />
-                       ) : (
-                         <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
-                       )}
-                     </div>
-                  ))}
+              )}
+            </div>
+
+            {/* Quick Symbols Settings */}
+            <div className="flex flex-col gap-4 py-5">
+              <button onClick={() => toggleAccordion('quickSymbols')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text whitespace-nowrap">{t('settings.quickSymbols')}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.quickSymbols ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {settingsAccordionState.quickSymbols && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-end w-full gap-2">
+                    <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1 shadow-sm">
+                      {[0, 1, 2, 3].map(i => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setActiveQuickSymbolTemplate(i);
+                            setSettingsAccordionState(prev => ({ ...prev, quickSymbols: true }));
+                          }}
+                          className={`w-7 h-6 flex items-center justify-center rounded text-xs font-bold transition-all ${
+                            activeQuickSymbolTemplate === i 
+                              ? 'bg-border text-text shadow-sm' 
+                              : 'text-muted hover:text-text'
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    {isEditingSymbols && (
+                      <button 
+                        onClick={() => setQuickSymbols(
+                          activeQuickSymbolTemplate === 0 ? DEFAULT_QUICK_SYMBOLS :
+                          activeQuickSymbolTemplate === 1 ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '$', '€', '£', '₺'] :
+                          activeQuickSymbolTemplate === 2 ? ['@', '#', '&', '*', '_', '-', '+', '=', '/', '\\', '|', '~', '<', '>'] :
+                          ['😊', '😂', '😭', '😡', '👍', '👎', '❤️', '💔', '✓', '✗', '!', '?', '...', '']
+                        )}
+                        className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-muted hover:text-text transition-colors"
+                      >
+                        {t('settings.reset')}
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => {
+                        setIsEditingSymbols(!isEditingSymbols);
+                        setSettingsAccordionState(prev => ({ ...prev, quickSymbols: true }));
+                      }}
+                      className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-text hover:bg-surface transition-colors shrink-0"
+                    >
+                      {isEditingSymbols ? t('settings.done') : t('settings.edit')}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {quickSymbols.slice(0, 7).map((sym, i) => (
+                       <div key={i} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
+                         {isEditingSymbols ? (
+                           <input
+                             maxLength={5}
+                             value={sym}
+                             onChange={(e) => {
+                               const newSyms = [...quickSymbols];
+                               newSyms[i] = e.target.value;
+                               setQuickSymbols(newSyms);
+                             }}
+                             className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
+                           />
+                         ) : (
+                           <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
+                         )}
+                       </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {quickSymbols.slice(7, 14).map((sym, i) => (
+                       <div key={i + 7} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
+                         {isEditingSymbols ? (
+                           <input
+                             maxLength={5}
+                             value={sym}
+                             onChange={(e) => {
+                               const newSyms = [...quickSymbols];
+                               newSyms[i + 7] = e.target.value;
+                               setQuickSymbols(newSyms);
+                             }}
+                             className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
+                           />
+                         ) : (
+                           <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
+                         )}
+                       </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-7 gap-2">
-                  {quickSymbols.slice(7, 14).map((sym, i) => (
-                     <div key={i + 7} className={`aspect-square flex items-center justify-center rounded-md shadow-sm overflow-hidden ${isEditingSymbols ? 'bg-surface border-2 border-border focus-within:border-text' : 'bg-surface border border-border'}`}>
-                       {isEditingSymbols ? (
-                         <input
-                           maxLength={5}
-                           value={sym}
-                           onChange={(e) => {
-                             const newSyms = [...quickSymbols];
-                             newSyms[i + 7] = e.target.value;
-                             setQuickSymbols(newSyms);
-                           }}
-                           className="w-full h-full text-center bg-transparent outline-none text-text font-medium text-xs sm:text-sm"
-                         />
-                       ) : (
-                         <span className={`text-text font-medium truncate px-1 w-full text-center ${sym.length > 2 ? 'text-[10px]' : sym.length > 1 ? 'text-xs' : 'text-sm'}`}>{sym}</span>
-                       )}
-                     </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
