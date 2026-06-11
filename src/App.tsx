@@ -90,27 +90,45 @@ const DEFAULT_CONFIGS: WordConfig[] = [
     description: 'Comprehensive daily conversational words',
     language: 'en-US',
     dictionary: {
-      'UP': 'Yes', 'DOWN': 'No', 'LEFT': 'Hello', 'RIGHT': 'Thanks',
+      'UP': 'the', 'DOWN': 'and', 'LEFT': 'to', 'RIGHT': 'a',
       'UP,UP': 'I', 'UP,DOWN': 'You', 'UP,LEFT': 'He', 'UP,RIGHT': 'She',
-      'DOWN,UP': 'It', 'DOWN,DOWN': 'We', 'DOWN,LEFT': 'They', 'DOWN,RIGHT': 'What',
-      'LEFT,UP': 'Where', 'LEFT,DOWN': 'When', 'LEFT,LEFT': 'Who', 'LEFT,RIGHT': 'Why',
-      'RIGHT,UP': 'How', 'RIGHT,DOWN': 'Please', 'RIGHT,LEFT': 'Sorry', 'RIGHT,RIGHT': 'Help',
-      'UP,UP,UP': 'want', 'UP,UP,DOWN': 'need', 'UP,UP,LEFT': 'like', 'UP,UP,RIGHT': 'love',
-      'UP,DOWN,UP': 'go', 'UP,DOWN,DOWN': 'stop', 'UP,DOWN,LEFT': 'come', 'UP,DOWN,RIGHT': 'leave',
-      'UP,LEFT,UP': 'good', 'UP,LEFT,DOWN': 'bad', 'UP,LEFT,LEFT': 'happy', 'UP,LEFT,RIGHT': 'sad',
-      'UP,RIGHT,UP': 'big', 'UP,RIGHT,DOWN': 'small', 'UP,RIGHT,LEFT': 'hot', 'UP,RIGHT,RIGHT': 'cold',
-      'DOWN,UP,UP': 'more', 'DOWN,UP,DOWN': 'less', 'DOWN,UP,LEFT': 'up', 'DOWN,UP,RIGHT': 'down',
-      'DOWN,DOWN,UP': 'in', 'DOWN,DOWN,DOWN': 'out', 'DOWN,DOWN,LEFT': 'on', 'DOWN,DOWN,RIGHT': 'off',
-      'DOWN,LEFT,UP': 'here', 'DOWN,LEFT,DOWN': 'there', 'DOWN,LEFT,LEFT': 'now', 'DOWN,LEFT,RIGHT': 'later',
-      'DOWN,RIGHT,UP': 'today', 'DOWN,RIGHT,DOWN': 'tomorrow', 'DOWN,RIGHT,LEFT': 'yesterday', 'DOWN,RIGHT,RIGHT': 'time',
-      'LEFT,UP,UP': 'food', 'LEFT,UP,DOWN': 'water', 'LEFT,UP,LEFT': 'eat', 'LEFT,UP,RIGHT': 'drink',
-      'LEFT,DOWN,UP': 'toilet', 'LEFT,DOWN,DOWN': 'sleep', 'LEFT,DOWN,LEFT': 'tired', 'LEFT,DOWN,RIGHT': 'hurt',
-      'LEFT,LEFT,UP': 'play', 'LEFT,LEFT,DOWN': 'work', 'LEFT,LEFT,LEFT': 'home', 'LEFT,LEFT,RIGHT': 'school',
-      'LEFT,RIGHT,UP': 'mother', 'LEFT,RIGHT,DOWN': 'father', 'LEFT,RIGHT,LEFT': 'sister', 'LEFT,RIGHT,RIGHT': 'brother',
-      'RIGHT,UP,UP': 'friend', 'RIGHT,UP,DOWN': 'family', 'RIGHT,UP,LEFT': 'doctor', 'RIGHT,UP,RIGHT': 'nurse',
-      'RIGHT,DOWN,UP': 'yes please', 'RIGHT,DOWN,DOWN': 'no thanks', 'RIGHT,DOWN,LEFT': 'maybe', 'RIGHT,DOWN,RIGHT': "I don't know",
-      'RIGHT,LEFT,UP': 'excuse me', 'RIGHT,LEFT,DOWN': 'look', 'RIGHT,LEFT,LEFT': 'listen', 'RIGHT,LEFT,RIGHT': 'wait',
-      'RIGHT,RIGHT,UP': 'fast', 'RIGHT,RIGHT,DOWN': 'slow', 'RIGHT,RIGHT,LEFT': 'quiet', 'RIGHT,RIGHT,RIGHT': 'loud'
+      'UP,UP,UP': 'It', 'UP,UP,DOWN': 'We', 'UP,UP,LEFT': 'They',
+      'DOWN,UP': 'am', 'DOWN,DOWN': 'is', 'DOWN,LEFT': 'are', 'DOWN,RIGHT': 'was',
+      'DOWN,DOWN,UP': 'were', 'DOWN,DOWN,DOWN': 'be', 'DOWN,DOWN,LEFT': 'been',
+      'LEFT,UP': 'have', 'LEFT,DOWN': 'has', 'LEFT,LEFT': 'had', 'LEFT,RIGHT': 'do',
+      'LEFT,UP,UP': 'does', 'LEFT,UP,DOWN': 'did', 'LEFT,UP,LEFT': 'will', 'LEFT,UP,RIGHT': 'can',
+      'RIGHT,UP': 'What', 'RIGHT,DOWN': 'Where', 'RIGHT,LEFT': 'When', 'RIGHT,RIGHT': 'Who',
+      'RIGHT,UP,UP': 'Why', 'RIGHT,UP,DOWN': 'How',
+      'UP,DOWN,UP': 'in', 'UP,DOWN,DOWN': 'on', 'UP,DOWN,LEFT': 'at', 'UP,DOWN,RIGHT': 'for',
+      'DOWN,UP,UP': 'with', 'DOWN,UP,DOWN': 'by', 'DOWN,UP,LEFT': 'from', 'DOWN,UP,RIGHT': 'up',
+      'RIGHT,DOWN,UP': 'down', 'RIGHT,DOWN,DOWN': 'out'
+    },
+    dictionaryLayer2: {
+      'UP': 'go', 'DOWN': 'come', 'LEFT': 'get', 'RIGHT': 'make',
+      'UP,UP': 'see', 'UP,DOWN': 'look', 'UP,LEFT': 'like', 'UP,RIGHT': 'want',
+      'DOWN,UP': 'need', 'DOWN,DOWN': 'use', 'DOWN,LEFT': 'say', 'DOWN,RIGHT': 'tell',
+      'LEFT,UP': 'good', 'LEFT,DOWN': 'bad', 'LEFT,LEFT': 'happy', 'LEFT,RIGHT': 'sad',
+      'RIGHT,UP': 'big', 'RIGHT,DOWN': 'small', 'RIGHT,LEFT': 'more', 'RIGHT,RIGHT': 'less',
+      'UP,UP,UP': 'other', 'UP,UP,DOWN': 'some', 'UP,UP,LEFT': 'all', 'UP,UP,RIGHT': 'many',
+      'DOWN,DOWN,UP': 'time', 'DOWN,DOWN,DOWN': 'day', 'DOWN,DOWN,LEFT': 'way', 'DOWN,DOWN,RIGHT': 'people',
+      'LEFT,LEFT,UP': 'water', 'LEFT,LEFT,DOWN': 'word', 'LEFT,LEFT,LEFT': 'number', 'LEFT,LEFT,RIGHT': 'part'
+    },
+    dictionaryLayer3: {
+      'UP': 'mother', 'DOWN': 'father', 'LEFT': 'sister', 'RIGHT': 'brother',
+      'UP,UP': 'friend', 'UP,DOWN': 'family', 'UP,LEFT': 'home', 'UP,RIGHT': 'school',
+      'DOWN,UP': 'work', 'DOWN,DOWN': 'here', 'DOWN,LEFT': 'there', 'DOWN,RIGHT': 'today',
+      'LEFT,UP': 'tomorrow', 'LEFT,DOWN': 'yesterday', 'LEFT,LEFT': 'now', 'LEFT,RIGHT': 'later',
+      'RIGHT,UP': 'first', 'RIGHT,DOWN': 'play', 'RIGHT,LEFT': 'eat', 'RIGHT,RIGHT': 'drink',
+      'UP,UP,UP': 'sleep', 'UP,UP,DOWN': 'write', 'UP,UP,LEFT': 'find', 'UP,UP,RIGHT': 'call'
+    },
+    dictionaryLayer4: {
+      'UP': 'tired', 'DOWN': 'hurt', 'LEFT': 'hot', 'RIGHT': 'cold',
+      'UP,UP': 'fast', 'UP,DOWN': 'slow', 'UP,LEFT': 'quiet', 'UP,RIGHT': 'loud',
+      'DOWN,UP': 'doctor', 'DOWN,DOWN': 'nurse', 'DOWN,LEFT': 'help', 'DOWN,RIGHT': 'toilet',
+      'LEFT,UP': 'please', 'LEFT,DOWN': 'sorry', 'LEFT,LEFT': 'excuse me', 'LEFT,RIGHT': 'wait',
+      'RIGHT,UP': 'listen', 'RIGHT,DOWN': 'maybe', 'RIGHT,LEFT': "I don't know", 'RIGHT,RIGHT': 'oil',
+      'UP,UP,UP': 'could', 'UP,UP,DOWN': 'would', 'UP,UP,LEFT': 'should', 'UP,UP,RIGHT': 'about',
+      'DOWN,DOWN,UP': 'into', 'DOWN,DOWN,DOWN': 'than'
     }
   },
   {
@@ -173,7 +191,15 @@ export default function App() {
     const saved = localStorage.getItem('gw_configs');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        let parsed = JSON.parse(saved);
+        const default1 = parsed.find((c: WordConfig) => c.id === 'default-1');
+        if (default1 && !default1.dictionaryLayer2) {
+          parsed = parsed.map((c: WordConfig) => 
+            c.id === 'default-1' ? { ...c, dictionary: DEFAULT_CONFIGS[0].dictionary, dictionaryLayer2: DEFAULT_CONFIGS[0].dictionaryLayer2, dictionaryLayer3: DEFAULT_CONFIGS[0].dictionaryLayer3, dictionaryLayer4: DEFAULT_CONFIGS[0].dictionaryLayer4 } : c
+          );
+          localStorage.setItem('gw_configs', JSON.stringify(parsed));
+        }
+        return parsed;
       } catch (e) {
         console.error('Failed to parse configs', e);
       }
@@ -203,19 +229,66 @@ export default function App() {
   };
   const currentSequence = currentSequenceState;
   const [isEditingSymbols, setIsEditingSymbols] = useState(false);
-  const [quickSymbols, setQuickSymbols] = useState<string[]>(() => {
-    const saved = localStorage.getItem('gw_quickSymbols');
+  const [quickSymbolTemplates, setQuickSymbolTemplates] = useState<string[][]>(() => {
+    const defaultTemplate2 = ['I', 'you', 'it', 'the', 'is', 'a', 'to', 'of', 'and', 'in', 'that', 'have', 'yes', 'no'];
+    const defaultTemplate3 = ['@', '#', '&', '*', '_', '-', '+', '=', '/', '\\', '|', '~', '<', '>'];
+    const defaultTemplate4 = ['😊', '😂', '😭', '😡', '👍', '👎', '❤️', '💔', '✓', '✗', '!', '?', '...', ''];
+
+    const saved = localStorage.getItem('gw_quickSymbolTemplates');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 13) {
-          return [...parsed, '/'];
+        if (Array.isArray(parsed) && parsed.length === 4) {
+          let updated = parsed.map(arr => {
+            const safe = Array.isArray(arr) ? arr : [];
+            while(safe.length < 14) safe.push('');
+            return safe.slice(0, 14);
+          });
+          
+          if (updated[1][0] === '1' && updated[1][1] === '2' && updated[1][2] === '3') {
+            updated[1] = defaultTemplate2;
+            localStorage.setItem('gw_quickSymbolTemplates', JSON.stringify(updated));
+          }
+          
+          return updated;
         }
-        return parsed;
-      } catch (e) { console.error('Failed to parse quick symbols', e); }
+      } catch (e) { console.error('Failed to parse quick symbol templates', e); }
     }
-    return DEFAULT_QUICK_SYMBOLS;
+    
+    const oldSaved = localStorage.getItem('gw_quickSymbols');
+    let defaultFirst = DEFAULT_QUICK_SYMBOLS;
+    if (oldSaved) {
+      try {
+        const parsed = JSON.parse(oldSaved);
+        if (Array.isArray(parsed) && parsed.length >= 13) {
+          defaultFirst = parsed;
+          if (defaultFirst.length === 13) defaultFirst.push('/');
+        }
+      } catch (e) {}
+    }
+    
+    return [
+      defaultFirst,
+      defaultTemplate2,
+      defaultTemplate3,
+      defaultTemplate4
+    ];
   });
+
+  const [activeQuickSymbolTemplate, setActiveQuickSymbolTemplate] = useState<number>(() => {
+    return parseInt(localStorage.getItem('gw_activeQuickSymbolTemplate') || '0', 10);
+  });
+
+  const quickSymbols = quickSymbolTemplates[activeQuickSymbolTemplate] || quickSymbolTemplates[0];
+
+  const setQuickSymbols = (newSyms: string[] | ((prev: string[]) => string[])) => {
+    setQuickSymbolTemplates(prev => {
+      const next = [...prev];
+      const current = next[activeQuickSymbolTemplate];
+      next[activeQuickSymbolTemplate] = typeof newSyms === 'function' ? newSyms(current) : newSyms;
+      return next;
+    });
+  };
 
   const [confirmedText, setConfirmedText] = useState<string[]>(() => {
     const saved = localStorage.getItem('gw_confirmedText');
@@ -236,7 +309,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem('gw_configs', JSON.stringify(configs)); }, [configs]);
   useEffect(() => { localStorage.setItem('gw_activeConfigId', activeConfigId); }, [activeConfigId]);
   useEffect(() => { localStorage.setItem('gw_confirmedText', JSON.stringify(confirmedText)); }, [confirmedText]);
-  useEffect(() => { localStorage.setItem('gw_quickSymbols', JSON.stringify(quickSymbols)); }, [quickSymbols]);
+  useEffect(() => { localStorage.setItem('gw_quickSymbolTemplates', JSON.stringify(quickSymbolTemplates)); }, [quickSymbolTemplates]);
+  useEffect(() => { localStorage.setItem('gw_activeQuickSymbolTemplate', activeQuickSymbolTemplate.toString()); }, [activeQuickSymbolTemplate]);
   
   const [isSaving, setIsSaving] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -278,8 +352,14 @@ export default function App() {
   const currentPosRef = useRef<{ x: number, y: number } | null>(null);
   const isGlidePausedRef = useRef(false);
   const trailRef = useRef<SVGPolylineElement>(null);
+  
+  const twoFingerStartYRef = useRef<number | null>(null);
+  const isTwoFingerSwipingRef = useRef(false);
+  const twoFingerSwipeOccurredRef = useRef(false);
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (twoFingerSwipeOccurredRef.current) return;
+    
     if (!e.isPrimary) {
       if (inputStyle === 'glide' && startPos.current) {
         isGlidePausedRef.current = true;
@@ -326,6 +406,7 @@ export default function App() {
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (twoFingerSwipeOccurredRef.current) return;
     if (!startPos.current || !e.isPrimary) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -379,6 +460,13 @@ export default function App() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     if (!e.isPrimary) return;
+    
+    if (twoFingerSwipeOccurredRef.current) {
+      startPos.current = null;
+      if (trailRef.current) trailRef.current.setAttribute('points', '');
+      return;
+    }
+    
     if (!startPos.current) return;
     
     if (pointerTimeoutRef.current) clearTimeout(pointerTimeoutRef.current);
@@ -772,13 +860,13 @@ export default function App() {
 
             {/* Layer Toggle Settings */}
             <div className="flex flex-col gap-4 mt-6">
-              <h3 className="text-lg font-semibold tracking-tight text-text">Layer Toggle</h3>
+              <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.layerToggle')}</h3>
 
               {/* Layer Count Slider */}
               <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-text">Number of Layers</span>
-                  <span className="text-[11px] text-muted">Up to 4 separate dictionaries</span>
+                  <span className="text-sm font-medium text-text">{t('settings.numberOfLayers')}</span>
+                  <span className="text-[11px] text-muted">{t('settings.upTo4Dictionaries')}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
@@ -796,7 +884,7 @@ export default function App() {
               </div>
 
               <div className="flex items-center justify-between p-4 bg-surface rounded-xl border border-border">
-                <span className="text-sm font-medium text-text">Show Layer Toggle</span>
+                <span className="text-sm font-medium text-text">{t('settings.showLayerToggle')}</span>
                 <button
                   onClick={() => setLayerToggleEnabled(!layerToggleEnabled)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${layerToggleEnabled ? 'bg-text' : 'bg-border'}`}
@@ -811,25 +899,47 @@ export default function App() {
                     onClick={() => setLayerTogglePosition('left')}
                     className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'left' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
                   >
-                    Left Side
+                    {t('settings.leftSide')}
                   </button>
                   <button
                     onClick={() => setLayerTogglePosition('right')}
                     className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${layerTogglePosition === 'right' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
                   >
-                    Right Side
+                    {t('settings.rightSide')}
                   </button>
                 </div>
               )}
             </div>
 
             <div className="flex flex-col gap-4 mt-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.quickSymbols')}</h3>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold tracking-tight text-text whitespace-nowrap">{t('settings.quickSymbols')}</h3>
+                
+                <div className="flex items-center justify-end flex-1 gap-2">
+                  <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1 shadow-sm">
+                    {[0, 1, 2, 3].map(i => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveQuickSymbolTemplate(i)}
+                        className={`w-7 h-6 flex items-center justify-center rounded text-xs font-bold transition-all ${
+                          activeQuickSymbolTemplate === i 
+                            ? 'bg-border text-text shadow-sm' 
+                            : 'text-muted hover:text-text'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
                   {isEditingSymbols && (
                     <button 
-                      onClick={() => setQuickSymbols(DEFAULT_QUICK_SYMBOLS)}
+                      onClick={() => setQuickSymbols(
+                        activeQuickSymbolTemplate === 0 ? DEFAULT_QUICK_SYMBOLS :
+                        activeQuickSymbolTemplate === 1 ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '$', '€', '£', '₺'] :
+                        activeQuickSymbolTemplate === 2 ? ['@', '#', '&', '*', '_', '-', '+', '=', '/', '\\', '|', '~', '<', '>'] :
+                        ['😊', '😂', '😭', '😡', '👍', '👎', '❤️', '💔', '✓', '✗', '!', '?', '...', '']
+                      )}
                       className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-muted hover:text-text transition-colors"
                     >
                       {t('settings.reset')}
@@ -837,7 +947,7 @@ export default function App() {
                   )}
                   <button 
                     onClick={() => setIsEditingSymbols(!isEditingSymbols)}
-                    className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-text hover:bg-surface transition-colors"
+                    className="text-xs font-medium px-3 py-1.5 rounded-md bg-canvas border border-border text-text hover:bg-surface transition-colors shrink-0"
                   >
                     {isEditingSymbols ? t('settings.done') : t('settings.edit')}
                   </button>
@@ -1071,15 +1181,11 @@ export default function App() {
           }
         }}
         onClick={() => {
-          if (!isTyping) {
-            setIsTyping(true);
-            setTimeout(() => {
-              const el = hiddenInputRef.current;
-              if (el) {
-                el.focus();
-                el.setSelectionRange(el.value.length, el.value.length);
-              }
-            }, 10);
+          if (!isTyping) setIsTyping(true);
+          const el = hiddenInputRef.current;
+          if (el) {
+            el.focus();
+            el.setSelectionRange(el.value.length, el.value.length);
           }
         }}
       >
@@ -1092,7 +1198,7 @@ export default function App() {
             setConfirmedText(val === '' ? [] : val.split(' '));
           }}
           onBlur={() => setIsTyping(false)}
-          disabled={!isTyping}
+          tabIndex={-1}
           autoCapitalize="none"
           autoComplete="off"
           autoCorrect="off"
@@ -1107,7 +1213,7 @@ export default function App() {
               <span key={i} className={`text-text ${fontClass} font-serif tracking-tight leading-[1.1] transition-all relative`}>
                 {word === '' && i !== confirmedText.length - 1 ? '\u00A0' : word}
                 {isTyping && i === confirmedText.length - 1 && (
-                  <span className="absolute -right-[14px] top-0 bottom-0 flex items-center justify-center animate-pulse opacity-80">|</span>
+                  <span className="animate-pulse opacity-80 ml-px">|</span>
                 )}
               </span>
             ))}
@@ -1166,7 +1272,53 @@ export default function App() {
               </div>
             )
           )}
-          <div className="relative w-full h-full max-w-[320px] max-h-[320px] flex items-center justify-center">
+          <div 
+            className="relative w-full h-full max-w-[320px] max-h-[320px] flex items-center justify-center"
+            onTouchStart={(e) => {
+              if (layerToggleEnabled && layerCount > 1 && e.touches.length === 2) {
+                const y1 = e.touches[0].clientY;
+                const y2 = e.touches[1].clientY;
+                twoFingerStartYRef.current = (y1 + y2) / 2;
+                isTwoFingerSwipingRef.current = true;
+                twoFingerSwipeOccurredRef.current = true;
+                setCurrentSequence([]);
+                if (trailRef.current) trailRef.current.setAttribute('points', '');
+              }
+            }}
+            onTouchMove={(e) => {
+              if (isTwoFingerSwipingRef.current && e.touches.length === 2 && twoFingerStartYRef.current !== null) {
+                const y1 = e.touches[0].clientY;
+                const y2 = e.touches[1].clientY;
+                const currentY = (y1 + y2) / 2;
+                const deltaY = currentY - twoFingerStartYRef.current;
+                
+                if (Math.abs(deltaY) > 50) {
+                  if (deltaY > 0) {
+                    // Swipe Down -> Next Layer
+                    setActiveLayer(prev => prev < layerCount ? prev + 1 : 1);
+                  } else {
+                    // Swipe Up -> Previous Layer
+                    setActiveLayer(prev => prev > 1 ? prev - 1 : layerCount);
+                  }
+                  
+                  isTwoFingerSwipingRef.current = false;
+                  
+                  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                    navigator.vibrate([20, 30, 20]);
+                  }
+                }
+              }
+            }}
+            onTouchEnd={(e) => {
+              if (e.touches.length === 0) {
+                isTwoFingerSwipingRef.current = false;
+                twoFingerStartYRef.current = null;
+                setTimeout(() => {
+                  twoFingerSwipeOccurredRef.current = false;
+                }, 50);
+              }
+            }}
+          >
             {/* Sequence Status Indicator */}
             {currentSequence.length > 0 && (
               <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-none z-20">
@@ -1293,11 +1445,11 @@ export default function App() {
       {/* Bottom Bar */}
       {currentView === 'main' && (
         <div className="shrink-0 max-w-4xl mx-auto w-full grid grid-cols-4 px-4 sm:px-6 py-4 sm:py-6 border-t border-border bg-transparent relative z-20 pb-safe gap-2 sm:gap-4">
-          <button onClick={() => setConfirmedText([])} className="flex flex-col items-center justify-center p-3 sm:p-4 text-muted hover:text-text hover:bg-surface border border-transparent hover:border-border transition-all rounded-lg active:scale-[0.95]">
+          <button onClick={() => setConfirmedText([])} className="flex flex-col items-center justify-center p-4 text-muted hover:text-text bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all rounded-lg active:scale-[0.95]">
             <Delete className="w-5 h-5 mb-2" strokeWidth={2} />
             <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.clear')}</span>
           </button>
-          <button onClick={() => setConfirmedText(prev => prev.slice(0, -1))} className="flex flex-col items-center justify-center p-4 text-muted hover:text-text hover:bg-surface border border-transparent hover:border-border transition-all rounded-lg active:scale-[0.95]">
+          <button onClick={() => setConfirmedText(prev => prev.slice(0, -1))} className="flex flex-col items-center justify-center p-4 text-muted hover:text-text bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all rounded-lg active:scale-[0.95]">
             <RotateCcw className="w-5 h-5 mb-2" strokeWidth={2} />
             <span className="text-[10px] font-bold tracking-[0.05em] uppercase">{t('bottomBar.undo')}</span>
           </button>
@@ -1307,13 +1459,11 @@ export default function App() {
                 hiddenInputRef.current?.blur();
               } else {
                 setIsTyping(true);
-                setTimeout(() => {
-                  const el = hiddenInputRef.current;
-                  if (el) {
-                    el.focus();
-                    el.setSelectionRange(el.value.length, el.value.length);
-                  }
-                }, 10);
+                const el = hiddenInputRef.current;
+                if (el) {
+                  el.focus();
+                  el.setSelectionRange(el.value.length, el.value.length);
+                }
               }
             }} 
             className="flex flex-col items-center justify-center p-4 text-muted hover:text-text bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all rounded-lg active:scale-[0.95]"
