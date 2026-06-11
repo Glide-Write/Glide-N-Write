@@ -33,4 +33,7 @@ coverage/
 # Custom / Agent Specific
 .agents/
 skills-lock.json
-metadata.json
+metadata.json
+
+# Android Build Temporary Files
+android/.gradle_temp/
