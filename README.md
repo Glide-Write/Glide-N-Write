@@ -1,4 +1,4 @@
-<img src="./assets/GW_logo_2.png" width="120" alt="Glide & Write Logo" />
+<img src=".\assets\Logo\GW2.png" width="120" alt="Glide & Write Logo" />
 
 # Glide & Write
 
