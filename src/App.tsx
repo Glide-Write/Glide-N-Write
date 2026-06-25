@@ -777,7 +777,13 @@ export default function App() {
   return (
     <div
       className={`flex flex-col font-sans text-text overflow-hidden select-none transition-colors duration-500 ${currentTheme} ${mode === 'entry' ? 'bg-entry' : 'bg-canvas'}`}
-      style={{ height: containerHeight || '100dvh' }}
+      style={{ 
+        height: containerHeight || '100dvh',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)'
+      }}
     >
       <TutorialOverlay 
         tutorialState={tutorialState}
@@ -799,7 +805,14 @@ export default function App() {
           />
 
           {/* Sidebar Panel */}
-          <div className="relative w-64 h-full bg-surface border-r border-border shadow-[4px_0_24px_rgba(0,0,0,0.04)] flex flex-col p-6 animate-in slide-in-from-left duration-300">
+          <div 
+            className="relative w-64 h-full bg-surface border-r border-border shadow-[4px_0_24px_rgba(0,0,0,0.04)] flex flex-col p-6 animate-in slide-in-from-left duration-300"
+            style={{ 
+              paddingTop: 'calc(1.5rem + env(safe-area-inset-top))',
+              paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+              paddingLeft: 'calc(1.5rem + env(safe-area-inset-left))'
+            }}
+          >
             <div className="flex items-center gap-3 mb-10">
               <button
                 onClick={() => setIsMenuOpen(false)}
