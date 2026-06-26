@@ -658,8 +658,17 @@ export default function App() {
           lang: targetLang,
         });
       } catch (error) {
-        alert("Cihazınızda metin okuma özelliği desteklenmiyor veya hata oluştu.");
-        console.error('TTS Error:', error);
+        try {
+          // Fallback to primary language code (e.g. 'tr' instead of 'tr-TR') for older devices
+          const shortLang = targetLang.split('-')[0];
+          await TextToSpeech.speak({
+            text: text,
+            lang: shortLang,
+          });
+        } catch (fallbackError) {
+          alert(t('main.ttsError') || "Text-to-speech is not supported on your device or an error occurred.");
+          console.error('TTS Error:', error, fallbackError);
+        }
       }
     } else {
       if ('speechSynthesis' in window) {
