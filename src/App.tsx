@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Menu, Delete, RotateCcw, Keyboard, Volume2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Copy, Trash2, Plus, Globe, Layers, ChevronDown } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { useTranslation } from './i18n';
 import gwLogo from '../assets/Logo/GW.png';
 import { useTutorial } from './hooks/useTutorial';
@@ -645,28 +647,41 @@ export default function App() {
     setIsSaving(false);
   };
 
-  const speakText = (text: string) => {
+  const speakText = async (text: string) => {
     if (!text) return;
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      const targetLang = activeConfig.language || 'en-US';
-      utterance.lang = targetLang;
+    const targetLang = activeConfig.language || 'en-US';
 
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const exactMatch = voices.find(v => v.lang === targetLang || v.lang.replace('_', '-') === targetLang);
-        const partialMatch = voices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
-        if (exactMatch) {
-          utterance.voice = exactMatch;
-        } else if (partialMatch) {
-          utterance.voice = partialMatch;
-        }
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await TextToSpeech.speak({
+          text: text,
+          lang: targetLang,
+        });
+      } catch (error) {
+        alert("Cihazınızda metin okuma özelliği desteklenmiyor veya hata oluştu.");
+        console.error('TTS Error:', error);
       }
-
-      window.speechSynthesis.speak(utterance);
     } else {
-      alert("Cihazınızda metin okuma özelliği desteklenmiyor.");
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = targetLang;
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const exactMatch = voices.find(v => v.lang === targetLang || v.lang.replace('_', '-') === targetLang);
+          const partialMatch = voices.find(v => v.lang.startsWith(targetLang.split('-')[0]));
+          if (exactMatch) {
+            utterance.voice = exactMatch;
+          } else if (partialMatch) {
+            utterance.voice = partialMatch;
+          }
+        }
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert("Cihazınızda metin okuma özelliği desteklenmiyor.");
+      }
     }
   };
 
