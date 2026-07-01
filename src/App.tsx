@@ -212,6 +212,7 @@ export default function App() {
       appearance: false,
       language: false,
       glide: false,
+      inputStyle: false,
       layerToggle: false,
       quickSymbols: false
     };
@@ -880,22 +881,7 @@ export default function App() {
           </button>
           <h1 className="text-xl font-sans tracking-tight pt-0.5 text-text font-semibold">G&W</h1>
 
-          {currentView === 'main' && (
-            <div className="flex bg-surface border border-border rounded-lg p-0.5 ml-1 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-              <button
-                onClick={() => { setInputStyle('step'); setCurrentSequence([]); }}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inputStyle === 'step' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
-              >
-                {t('header.step')}
-              </button>
-              <button
-                onClick={() => { setInputStyle('glide'); setCurrentSequence([]); }}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${inputStyle === 'glide' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
-              >
-                {t('header.glide')}
-              </button>
-            </div>
-          )}
+
         </div>
         {currentView === 'main' && (
           <div className="flex items-center gap-3">
@@ -1001,6 +987,33 @@ export default function App() {
                       className="w-full max-w-[200px] sm:max-w-xs accent-text"
                     />
                     <span className="text-lg font-medium font-mono min-w-[60px] text-right">{glidePauseDuration}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input Style Settings */}
+            <div className="flex flex-col gap-4 py-5 border-b border-border/50">
+              <button onClick={() => toggleAccordion('inputStyle')} className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold tracking-tight text-text">{t('settings.inputStyle')}</h3>
+                <ChevronDown className={`w-5 h-5 text-muted transition-transform ${settingsAccordionState.inputStyle ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsAccordionState.inputStyle && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted mb-2">{t('settings.inputStyleDesc')}</p>
+                  <div className="flex bg-surface border border-border rounded-lg p-1 shadow-sm">
+                    <button
+                      onClick={() => setInputStyle('step')}
+                      className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${inputStyle === 'step' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+                    >
+                      {t('header.step')}
+                    </button>
+                    <button
+                      onClick={() => setInputStyle('glide')}
+                      className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all ${inputStyle === 'glide' ? 'bg-border text-text shadow-sm' : 'text-muted hover:text-text'}`}
+                    >
+                      {t('header.glide')}
+                    </button>
                   </div>
                 </div>
               )}
